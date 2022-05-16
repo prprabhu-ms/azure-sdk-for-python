@@ -154,3 +154,15 @@ class MicrosoftTeamsUserIdentifier(object):
             is_anonymous=kwargs.get('is_anonymous', False),
             cloud=kwargs.get('cloud') or CommunicationCloudEnvironment.PUBLIC
         )
+
+
+def identifier_from_raw_id(raw_id):
+    """
+    Creates a CommunicationIdentifier from a given raw ID.
+
+    When storing raw IDs use this function to restore the identifier that was encoded in the raw ID.
+
+    :param raw ID to construct the CommunicationIdentifier from.
+    """
+    # type(str) -> CommunicationIdentifier
+    raise NotImplementedError()

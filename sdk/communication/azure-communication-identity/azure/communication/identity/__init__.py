@@ -14,7 +14,8 @@ from ._shared.models import (
     CommunicationIdentifier,
     CommunicationIdentifierKind,
     CommunicationUserIdentifier,
-    CommunicationUserProperties
+    CommunicationUserProperties,
+    identifier_from_raw_id
 )
 
 __all__ = [
@@ -27,5 +28,6 @@ __all__ = [
     'CommunicationIdentifier',
     'CommunicationIdentifierKind',
     'CommunicationUserIdentifier',
-    'CommunicationUserProperties'
+    'CommunicationUserProperties',
+    'identifier_from_raw_id'
 ]
