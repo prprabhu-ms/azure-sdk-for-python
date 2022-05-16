@@ -85,6 +85,12 @@ class IdentifierRawIdTest(unittest.TestCase):
         )
         _assert_raw_id(
             PhoneNumberIdentifier(
+                value='112345556789'
+            ),
+            '4:112345556789'
+        )
+        _assert_raw_id(
+            PhoneNumberIdentifier(
                 value='+112345556789',
                 raw_id='4:otherFormat'
             ),
