@@ -196,4 +196,44 @@ def identifier_from_raw_id(raw_id):
     :param raw ID to construct the CommunicationIdentifier from.
     """
     # type (str) -> CommunicationIdentifier
-    raise NotImplementedError()
+    if raw_id.startswith('4:'):
+        return PhoneNumberIdentifier(
+            value='+{}'.format(raw_id[len('4:'):])
+        )
+
+    segments = raw_id.split(':', maxsplit=2)
+    if len(segments) < 3:
+        return UnknownIdentifier(identifier=raw_id)
+
+    prefix = '{}:{}:'.format(segments[0], segments[1])
+    suffix = raw_id[len(prefix):]
+    if prefix == '8:teamsvisitor:':
+        return MicrosoftTeamsUserIdentifier(
+            user_id=suffix,
+            is_anonymous=True
+        )
+    elif prefix == '8:orgid:':
+        return MicrosoftTeamsUserIdentifier(
+            user_id=suffix,
+            is_anonymous=False,
+            cloud='PUBLIC'
+        )
+    elif prefix == '8:dod:':
+        return MicrosoftTeamsUserIdentifier(
+            user_id=suffix,
+            is_anonymous=False,
+            cloud='DOD'
+        )
+    elif prefix == '8:gcch:':
+        return MicrosoftTeamsUserIdentifier(
+            user_id=suffix,
+            is_anonymous=False,
+            cloud='GCCH'
+        )
+    elif prefix in ['8:acs:', '8:spool:', '8:dod-acs:', '8:gcch-acs:']:
+        return CommunicationUserIdentifier(
+            id=raw_id
+        )
+    return UnknownIdentifier(
+        identifier=raw_id
+    )
