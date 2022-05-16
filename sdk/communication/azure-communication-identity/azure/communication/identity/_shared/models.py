@@ -5,6 +5,7 @@
 # pylint: skip-file
 
 from enum import Enum, EnumMeta
+import re
 from six import with_metaclass
 from typing import Mapping, Optional, Union, Any
 try:
@@ -67,8 +68,9 @@ class CommunicationUserIdentifier(object):
 
     def __init__(self, id, **kwargs):
         # type: (str, Any) -> None
-        self.raw_id = kwargs.get('raw_id')
+        self.raw_id = kwargs.get('raw_id', id)
         self.properties = CommunicationUserProperties(id=id)
+        _update_identifier_raw_id(self)
 
 
 PhoneNumberProperties = TypedDict(
@@ -95,6 +97,7 @@ class PhoneNumberIdentifier(object):
         # type: (str, Any) -> None
         self.raw_id = kwargs.get('raw_id')
         self.properties = PhoneNumberProperties(value=value)
+        _update_identifier_raw_id(self)
 
 
 class UnknownIdentifier(object):
@@ -154,6 +157,7 @@ class MicrosoftTeamsUserIdentifier(object):
             is_anonymous=kwargs.get('is_anonymous', False),
             cloud=kwargs.get('cloud') or CommunicationCloudEnvironment.PUBLIC
         )
+        _update_identifier_raw_id(self)
 
 
 def identifier_from_raw_id(raw_id):
@@ -164,5 +168,39 @@ def identifier_from_raw_id(raw_id):
 
     :param raw ID to construct the CommunicationIdentifier from.
     """
-    # type(str) -> CommunicationIdentifier
+    # type (str) -> CommunicationIdentifier
     raise NotImplementedError()
+
+
+def _update_identifier_raw_id(identifier):
+    # type (CommunicationIdentifier) -> None
+    if identifier.raw_id is None:
+        identifier.raw_id = _infer_identifier_raw_id(identifier)
+
+
+_PHONE_NUMBER_PREFIX = re.compile(r'^\+')
+
+def _infer_identifier_raw_id(identifier):
+    # type (CommunicationIdentifier) -> str
+    kind = identifier.kind
+    if kind == CommunicationIdentifierKind.COMMUNICATION_USER:
+        return identifier.properties['id']
+    elif kind == CommunicationIdentifierKind.MICROSOFT_TEAMS_USER:
+        user_id = identifier.properties['user_id']
+        if identifier.properties['is_anonymous']:
+            return '8:teamsvisitor:{}'.format(user_id)
+        cloud = identifier.properties['cloud']
+        if cloud == CommunicationCloudEnvironment.DOD:
+            return '8:dod:{}'.format(user_id)
+        elif cloud == CommunicationCloudEnvironment.GCCH:
+            return '8:gcch:{}'.format(user_id)
+        elif cloud == CommunicationCloudEnvironment.PUBLIC:
+            return '8:orgid:{}'.format(user_id)
+        return '8:orgid:{}'.format(user_id)
+    elif kind == CommunicationIdentifierKind.PHONE_NUMBER:
+        value = identifier.properties['value']
+        # strip the leading +. We just assume correct E.164 format here because
+        # validation should only happen server-side, not client-side.
+        return '4:{}'.format(_PHONE_NUMBER_PREFIX.sub('', value))
+    # Unreachable
+    raise ValueError('failed to infer identifier for {}'.format(identifier))
