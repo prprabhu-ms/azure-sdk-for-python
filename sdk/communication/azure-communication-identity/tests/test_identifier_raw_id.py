@@ -200,6 +200,22 @@ class IdentifierRawIdTest(unittest.TestCase):
         with pytest.raises(Exception):
             identifier_from_raw_id(None)
 
+    def test_roundtrip(self):
+        _assert_roundtrip('8:acs:bbbcbc1e-9f06-482a-b5d8-20e3f26ef0cd_45ab2481-1c1c-4005-be24-0ffb879b1130')
+        _assert_roundtrip('8:spool:bbbcbc1e-9f06-482a-b5d8-20e3f26ef0cd_45ab2481-1c1c-4005-be24-0ffb879b1130')
+        _assert_roundtrip('8:dod-acs:bbbcbc1e-9f06-482a-b5d8-20e3f26ef0cd_45ab2481-1c1c-4005-be24-0ffb879b1130')
+        _assert_roundtrip('8:gcch-acs:bbbcbc1e-9f06-482a-b5d8-20e3f26ef0cd_45ab2481-1c1c-4005-be24-0ffb879b1130')
+        _assert_roundtrip('8:acs:something')
+        _assert_roundtrip('8:orgid:45ab2481-1c1c-4005-be24-0ffb879b1130')
+        _assert_roundtrip('8:dod:45ab2481-1c1c-4005-be24-0ffb879b1130')
+        _assert_roundtrip('8:gcch:45ab2481-1c1c-4005-be24-0ffb879b1130')
+        _assert_roundtrip('8:teamsvisitor:45ab2481-1c1c-4005-be24-0ffb879b1130')
+        _assert_roundtrip('8:orgid:legacyFormat')
+        _assert_roundtrip('4:112345556789')
+        _assert_roundtrip('4:otherFormat')
+        _assert_roundtrip('28:45ab2481-1c1c-4005-be24-0ffb879b1130')
+        _assert_roundtrip('')
+
 
 def _assert_raw_id(identifier, want):
     # type: (CommunicationIdentifier, str) -> None
@@ -215,3 +231,8 @@ def _assert_communication_identifier(raw_id, want):
     for key in want.properties:
         assert key in got.properties
         assert got.properties[key] == want.properties[key]
+
+
+def _assert_roundtrip(raw_id):
+    # type: (str) -> None
+    assert identifier_from_raw_id(raw_id).raw_id == raw_id
